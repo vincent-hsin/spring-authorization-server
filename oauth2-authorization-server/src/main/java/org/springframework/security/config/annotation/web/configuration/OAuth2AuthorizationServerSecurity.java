@@ -19,6 +19,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.web.OAuth2TokenEndpointFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -51,8 +52,15 @@ public class OAuth2AuthorizationServerSecurity extends WebSecurityConfigurerAdap
 			.formLogin(withDefaults())
 			.csrf(csrf -> csrf.ignoringRequestMatchers(tokenEndpointMatcher()))
 			.apply(authorizationServerConfigurer);
+
+		http.cors();
 	}
 	// @formatter:on
+
+	@Override
+	public void configure(WebSecurity web) {
+		web.ignoring().antMatchers(HttpMethod.OPTIONS);
+	}
 
 	private static RequestMatcher tokenEndpointMatcher() {
 		return new AntPathRequestMatcher(

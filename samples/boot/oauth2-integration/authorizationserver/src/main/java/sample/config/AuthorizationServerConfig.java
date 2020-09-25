@@ -30,6 +30,8 @@ import org.springframework.security.oauth2.server.authorization.client.InMemoryR
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.UUID;
 
@@ -50,7 +52,7 @@ public class AuthorizationServerConfig {
 				.clientAuthenticationMethod(ClientAuthenticationMethod.BASIC)
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-				.redirectUri("http://localhost:8080/authorized")
+				.redirectUri("http://localhost:1024/swagger-ui/oauth2-redirect.html")
 				.scope("message.read")
 				.scope("message.write")
 				.build();
@@ -74,4 +76,14 @@ public class AuthorizationServerConfig {
 		return new InMemoryUserDetailsManager(user);
 	}
 	// @formatter:on
+
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/oauth2/token").allowedOrigins("http://localhost:1024");
+			}
+		};
+	}
 }
