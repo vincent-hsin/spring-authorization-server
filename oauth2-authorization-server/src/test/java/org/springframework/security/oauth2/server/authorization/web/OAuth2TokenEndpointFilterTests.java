@@ -66,6 +66,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Madhu Bhat
  * @author Joe Grandja
+ * @author Daniel Garnier-Moiroux
  */
 public class OAuth2TokenEndpointFilterTests {
 	private AuthenticationManager authenticationManager;
@@ -163,17 +164,6 @@ public class OAuth2TokenEndpointFilterTests {
 
 		doFilterWhenTokenRequestInvalidParameterThenError(
 				OAuth2ParameterNames.GRANT_TYPE, OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE, request);
-	}
-
-	@Test
-	public void doFilterWhenTokenRequestMultipleClientIdThenInvalidRequestError() throws Exception {
-		MockHttpServletRequest request = createAuthorizationCodeTokenRequest(
-				TestRegisteredClients.registeredClient().build());
-		request.addParameter(OAuth2ParameterNames.CLIENT_ID, "client-1");
-		request.addParameter(OAuth2ParameterNames.CLIENT_ID, "client-2");
-
-		doFilterWhenTokenRequestInvalidParameterThenError(
-				OAuth2ParameterNames.CLIENT_ID, OAuth2ErrorCodes.INVALID_REQUEST, request);
 	}
 
 	@Test
@@ -410,6 +400,8 @@ public class OAuth2TokenEndpointFilterTests {
 		request.addParameter(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
 		request.addParameter(OAuth2ParameterNames.CODE, "code");
 		request.addParameter(OAuth2ParameterNames.REDIRECT_URI, redirectUris[0]);
+		// The client does not need to send the client ID param, but we are resilient in case they do
+		request.addParameter(OAuth2ParameterNames.CLIENT_ID, registeredClient.getClientId());
 
 		return request;
 	}

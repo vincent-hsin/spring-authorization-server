@@ -55,6 +55,7 @@ public class AuthorizationServerConfig {
 				.redirectUri("http://localhost:1024/swagger-ui/oauth2-redirect.html")
 				.scope("message.read")
 				.scope("message.write")
+				.clientSettings(clientSettings -> clientSettings.requireUserConsent(true))
 				.build();
 		return new InMemoryRegisteredClientRepository(registeredClient);
 	}

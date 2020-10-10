@@ -40,6 +40,7 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -63,8 +64,13 @@ import java.util.Map;
 public final class OAuth2AuthorizationServerConfigurer<B extends HttpSecurityBuilder<B>>
 		extends AbstractHttpConfigurer<OAuth2AuthorizationServerConfigurer<B>, B> {
 
-	private final RequestMatcher authorizationEndpointMatcher = new AntPathRequestMatcher(
-			OAuth2AuthorizationEndpointFilter.DEFAULT_AUTHORIZATION_ENDPOINT_URI, HttpMethod.GET.name());
+	private final RequestMatcher authorizationEndpointMatcher = new OrRequestMatcher(
+			new AntPathRequestMatcher(
+					OAuth2AuthorizationEndpointFilter.DEFAULT_AUTHORIZATION_ENDPOINT_URI,
+					HttpMethod.GET.name()),
+			new AntPathRequestMatcher(
+					OAuth2AuthorizationEndpointFilter.DEFAULT_AUTHORIZATION_ENDPOINT_URI,
+					HttpMethod.POST.name()));
 	private final RequestMatcher tokenEndpointMatcher = new AntPathRequestMatcher(
 			OAuth2TokenEndpointFilter.DEFAULT_TOKEN_ENDPOINT_URI, HttpMethod.POST.name());
 	private final RequestMatcher jwkSetEndpointMatcher = new AntPathRequestMatcher(
@@ -120,7 +126,8 @@ public final class OAuth2AuthorizationServerConfigurer<B extends HttpSecurityBui
 	public void init(B builder) {
 		OAuth2ClientAuthenticationProvider clientAuthenticationProvider =
 				new OAuth2ClientAuthenticationProvider(
-						getRegisteredClientRepository(builder));
+						getRegisteredClientRepository(builder),
+						getAuthorizationService(builder));
 		builder.authenticationProvider(postProcess(clientAuthenticationProvider));
 
 		NimbusJwsEncoder jwtEncoder = new NimbusJwsEncoder(getKeyManager(builder));

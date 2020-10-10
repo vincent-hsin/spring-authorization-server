@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A {@code Filter} for the OAuth 2.0 Authorization Code Grant,
@@ -77,6 +78,7 @@ import java.util.Set;
  *
  * @author Joe Grandja
  * @author Madhu Bhat
+ * @author Daniel Garnier-Moiroux
  * @since 0.0.1
  * @see AuthenticationManager
  * @see OAuth2AuthorizationService
@@ -195,16 +197,9 @@ public class OAuth2TokenEndpointFilter extends OncePerRequestFilter {
 				return null;
 			}
 
-			MultiValueMap<String, String> parameters = OAuth2EndpointUtils.getParameters(request);
-
-			// client_id (REQUIRED, if the client is not authenticating with the authorization server)
-			String clientId = parameters.getFirst(OAuth2ParameterNames.CLIENT_ID);
-			if (StringUtils.hasText(clientId)) {
-				if (parameters.get(OAuth2ParameterNames.CLIENT_ID).size() != 1) {
-					throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.CLIENT_ID);
-				}
-			}
 			Authentication clientPrincipal = SecurityContextHolder.getContext().getAuthentication();
+
+			MultiValueMap<String, String> parameters = OAuth2EndpointUtils.getParameters(request);
 
 			// code (REQUIRED)
 			String code = parameters.getFirst(OAuth2ParameterNames.CODE);
@@ -221,7 +216,16 @@ public class OAuth2TokenEndpointFilter extends OncePerRequestFilter {
 				throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.REDIRECT_URI);
 			}
 
-			return new OAuth2AuthorizationCodeAuthenticationToken(code, clientId, clientPrincipal, redirectUri);
+			Map<String, Object> additionalParameters = parameters
+					.entrySet()
+					.stream()
+					.filter(e -> !e.getKey().equals(OAuth2ParameterNames.GRANT_TYPE) &&
+							!e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+							!e.getKey().equals(OAuth2ParameterNames.CODE) &&
+							!e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI))
+					.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)));
+
+			return new OAuth2AuthorizationCodeAuthenticationToken(code, clientPrincipal, redirectUri, additionalParameters);
 		}
 	}
 
