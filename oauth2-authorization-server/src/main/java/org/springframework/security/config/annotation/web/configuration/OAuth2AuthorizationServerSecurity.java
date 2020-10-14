@@ -35,9 +35,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class OAuth2AuthorizationServerSecurity extends WebSecurityConfigurerAdapter {
 
-	// @formatter:off
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+		applyDefaultConfiguration(http);
+	}
+
+	// @formatter:off
+	public static void applyDefaultConfiguration(HttpSecurity http) throws Exception {
 		OAuth2AuthorizationServerConfigurer<HttpSecurity> authorizationServerConfigurer =
 				new OAuth2AuthorizationServerConfigurer<>();
 		RequestMatcher[] endpointMatchers = authorizationServerConfigurer
